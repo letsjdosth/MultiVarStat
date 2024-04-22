@@ -13,7 +13,10 @@ set.seed(20240419)
 
 
 #regular least squares
-coef(lm(medv~., data=Boston))
+ls_fit = lm(medv~., data=Boston)
+round(coef(ls_fit),3)
+plot(1:506, ls_fit$residuals, xlab='idx', ylab='residual')
+abline(0,0)
 
 ls_num_cv_iter = 100
 ls_error_vec = rep(NA, ls_num_cv_iter)
@@ -26,7 +29,7 @@ for(k in 1:ls_num_cv_iter){
     ls_error_vec[k] = mean((as.vector(pred) - data_y[test_data_indicator])^2)
 }
 mean(ls_error_vec)
-
+sd(ls_error_vec)
 
 
 #best subset (say 'bs')
@@ -61,8 +64,9 @@ points(1:13, bs_cv_test_err_est, col='red')
 points(1:13, bs_cv_test_err_est+bs_cv_test_err_sd, col='black')
 points(1:13, bs_cv_test_err_est-bs_cv_test_err_sd, col='black')
 #use 5 or 11
-coef(bs_fit_full, id=11)
+round(coef(bs_fit_full, id=11),3)
 bs_cv_test_err_est[11] #test err est
+sd(bs_val_errors_mat[,11])
 
 #ridge
 library(glmnet)
@@ -98,12 +102,14 @@ for(k in 1:ridge_num_cv_iter){
 }
 ridge_cv_test_err_est = colMeans(ridge_val_errors_mat)
 which.min(ridge_cv_test_err_est) #83
-ridge_cv_test_err_est[which.min(ridge_cv_test_err_est)] #23.09675
 lambda_grid[which.min(ridge_cv_test_err_est)] #0.0001592283
+ridge_cv_test_err_est[which.min(ridge_cv_test_err_est)] #23.09675
+sd(ridge_val_errors_mat[,which.min(ridge_cv_test_err_est)])
+
 
 ##select
 ridge_fit = glmnet(data_X, data_y, family="gaussian", standardize=TRUE, alpha=0, lambda=c(0.1, 0.001, 0.0001592283, 0.0000001)) 
-coef(ridge_fit)[,3]
+round(coef(ridge_fit)[,3],3)
 
 
 #lasso
@@ -144,7 +150,8 @@ lasso_cv_test_err_est = colMeans(lasso_val_errors_mat)
 which.min(lasso_cv_test_err_est) #51(random CV)
 lambda_grid[which.min(lasso_cv_test_err_est)] #0.02915053
 lasso_cv_test_err_est[which.min(lasso_cv_test_err_est)] #23.09(random CV)
+sd(lasso_val_errors_mat[,which.min(lasso_cv_test_err_est)])
 
 ##select
 lasso_fit = glmnet(data_X, data_y, family="gaussian", standardize=TRUE, alpha=1, lambda=c(1, 0.1, 0.02915053, 0.01)) 
-coef(lasso_fit)[,3]
+round(coef(lasso_fit)[,3],3)

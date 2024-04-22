@@ -16,7 +16,7 @@ library(monomvn)
 
 bridge_fit = bridge(data_X, data_y, T=10000, RJ=FALSE, lambda2=0.0001592283, normalize=FALSE)
 mean(bridge_fit$mu)
-colMeans(bridge_fit$beta)
+round(colMeans(bridge_fit$beta),3)
 
 cv_iter = 50
 cv_err_vec = rep(NA, cv_iter)
@@ -30,13 +30,13 @@ for(k in 1:cv_iter){
     cv_err_vec[k] = mean((data_y[test_data_indicator]-pred)^2)
 }
 mean(cv_err_vec)
-
+sd(cv_err_vec)
 
 
 
 blasso_fit = blasso(data_X, data_y, T=10000, RJ=FALSE, lambda2=0.02915053, normalize=FALSE)
 mean(blasso_fit$mu)
-colMeans(blasso_fit$beta)
+round(colMeans(blasso_fit$beta),3)
 
 cv_iter = 50
 cv_err_vec = rep(NA, cv_iter)
@@ -50,3 +50,4 @@ for(k in 1:cv_iter){
     cv_err_vec[k] = mean((data_y[test_data_indicator]-pred)^2)
 }
 mean(cv_err_vec)
+sd(cv_err_vec)

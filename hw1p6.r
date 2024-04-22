@@ -13,7 +13,7 @@ data_y = Boston$medv
 set.seed(20240420)
 
 #k-fold (problem 6)
-total_k = 10 #'k' fold
+total_k = 506 #'k' fold
 
 lambda_grid = 10^seq(1, -5, length=100)
 lasso_val_errors_mat = matrix(NA, total_k*50, length(lambda_grid))
@@ -22,7 +22,7 @@ lasso_val_errors_mat_at_batch = matrix(NA, 50, length(lambda_grid))
 for(rr in 1:50){
     fold_indicator = sample(rep(1:total_k, length=nrow(Boston)), replace=FALSE)
     sum_val_errors_at_batch = rep(0, length(lambda_grid))
-    for(k in 1:total_k){
+    for(k in 1:total_k){ #total_k
         train_data_indicator = (fold_indicator!=k)
         test_data_indicator = (fold_indicator==k)
         lasso_fit = glmnet(data_X[train_data_indicator,], data_y[train_data_indicator], 
@@ -38,7 +38,7 @@ for(rr in 1:50){
     lasso_val_errors_mat_at_batch[rr,] = sum_val_errors_at_batch/total_k
 }
 # lasso_val_errors_mat_at_batch: mild lines
-lasso_cv_test_err_est = colMeans(lasso_val_errors_mat) #bold line
+lasso_cv_test_err_est = colMeans(lasso_val_errors_mat, na.rm=TRUE) #bold line
 which.min(lasso_cv_test_err_est) #52(10fold, 50rep)
 lambda_grid[which.min(lasso_cv_test_err_est)]
 lasso_cv_test_err_est[which.min(lasso_cv_test_err_est)] #23.54373(10fold, 50rep)
@@ -46,6 +46,11 @@ lasso_cv_test_err_est[which.min(lasso_cv_test_err_est)] #23.54373(10fold, 50rep)
 plot(lambda_grid, lasso_cv_test_err_est, type='l', col='red')
 for(i in 1:50) lines(lambda_grid, lasso_val_errors_mat_at_batch[i,])
 lines(lambda_grid, lasso_cv_test_err_est, col='red')
+
+plot(lambda_grid[35:50], lasso_cv_test_err_est[35:50], type='l', col='red', ylim=c(10,25))
+for(i in 1:50) lines(lambda_grid[35:50], lasso_val_errors_mat_at_batch[i,35:50])
+lines(lambda_grid[35:50], lasso_cv_test_err_est[35:50], col='red')
+
 
 
 #bootstrap
@@ -78,3 +83,7 @@ lasso_cv_test_err_est = colMeans(lasso_val_errors_mat_at_batch)
 plot(lambda_grid, lasso_cv_test_err_est, type='l', col='red')
 for(i in 1:boot_iter) lines(lambda_grid, lasso_val_errors_mat_at_batch[i,])
 lines(lambda_grid, lasso_cv_test_err_est, col='red')
+
+plot(lambda_grid[35:50], lasso_cv_test_err_est[35:50], type='l', col='red', ylim=c(24,26))
+for(i in 1:boot_iter) lines(lambda_grid[35:50], lasso_val_errors_mat_at_batch[i,35:50])
+lines(lambda_grid[35:50], lasso_cv_test_err_est[35:50], col='red')
