@@ -13,13 +13,14 @@ data_y = Boston$medv
 set.seed(20240420)
 
 #k-fold (problem 6)
-total_k = 506 #'k' fold
+total_k = 506 #'k' fold. for 10 fold, set 'total_k=10, RR=50'
+RR = 1
 
 lambda_grid = 10^seq(1, -5, length=100)
-lasso_val_errors_mat = matrix(NA, total_k*50, length(lambda_grid))
-lasso_val_errors_mat_at_batch = matrix(NA, 50, length(lambda_grid))
+lasso_val_errors_mat = matrix(NA, total_k*RR, length(lambda_grid))
+lasso_val_errors_mat_at_batch = matrix(NA, RR, length(lambda_grid))
 
-for(rr in 1:50){
+for(rr in 1:RR){
     fold_indicator = sample(rep(1:total_k, length=nrow(Boston)), replace=FALSE)
     sum_val_errors_at_batch = rep(0, length(lambda_grid))
     for(k in 1:total_k){ #total_k
