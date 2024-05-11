@@ -36,6 +36,7 @@ dim(qda_test$posterior)
 mean(vowel_train$y == qda_train$class)
 mean(vowel_test$y == qda_test$class) #correct classification
 table(vowel_test$y, qda_test$class)
+?table
 
 #logistic regression (multinomial)
 library(nnet)
@@ -79,9 +80,11 @@ all_test_err[which.min(all_test_err)] #0.4329004
 #p1(c))###################################################
 vowel_train_r = vowel_train[(vowel_train$y==6 | vowel_train$y==11),]
 vowel_test_r = vowel_test[(vowel_test$y==6 | vowel_test$y==11),]
+vowel_train_r$y = ifelse(vowel_train_r$y==6, 0, 1)
+vowel_test_r$y = ifelse(vowel_test_r$y==6, 0, 1)
 
 #lda
-lda_fit_r = lda(y ~ ., data=vowel_train_r)
+lda_fit_r = lda(y ~., data=vowel_train_r)
 plot(lda_fit_r)
 lda_fit_r
 lda_train_r = predict(lda_fit_r, vowel_train_r[,2:11])
@@ -95,7 +98,6 @@ table(vowel_test_r$y, lda_test_r$class)
 
 #qda
 qda_fit_r = qda(y ~ ., data=vowel_train_r)
-qda_fit_r
 qda_train_r = predict(qda_fit_r, vowel_train_r[,2:11])
 qda_test_r = predict(qda_fit_r, vowel_test_r[,2:11])
 qda_test_r$class
@@ -106,24 +108,25 @@ mean(vowel_test_r$y == qda_test_r$class) #correct classification
 table(vowel_test_r$y, qda_test_r$class)
 
 #logistic reg
-vowel_train_r$y01 = ifelse(vowel_train_r$y==6, 0, 1)
-vowel_test_r$y01 = ifelse(vowel_test_r$y==6, 0, 1)
-logistic_fit_r = glm(y01 ~ .-y, family = binomial, data = vowel_train_r)
+logistic_fit_r = glm(y ~ ., family = binomial, data = vowel_train_r)
 summary(logistic_fit_r)
 logistic_train_r_prob = predict(logistic_fit_r, vowel_train_r[,1:11], type="response") #probs for 11
 logistic_train_r = ifelse(logistic_train_r_prob>0.5, 1, 0)
 logistic_test_r_prob = predict(logistic_fit_r, vowel_test_r[,1:11], type="response")
 logistic_test_r = ifelse(logistic_test_r_prob>0.5, 1, 0)
-mean(vowel_train_r$y01 == logistic_train_r)
-mean(vowel_test_r$y01 == logistic_test_r) #correct classification
-table(vowel_test_r$y01, logistic_test_r)
+mean(vowel_train_r$y == logistic_train_r)
+mean(vowel_test_r$y == logistic_test_r) #correct classification
+table(vowel_test_r$y, logistic_test_r)
 
 library(pROC)
-plot(roc(vowel_test_r$y01, logistic_test_r_prob)) #Area under the curve: 0.8265
+plot(roc(vowel_test_r$y, lda_fit_r)) #Area under the curve: 0.8265
+plot(roc(vowel_test_r$y, qda_fit_r)) #Area under the curve: 0.8265
+plot(roc(vowel_test_r$y, logistic_test_r_prob)) #Area under the curve: 0.8265
 
 #eigenval decomp 
 mcluster_fit_r = MclustDA(vowel_train_r[,2:11], vowel_train_r[,1], modelNames = "EEI")
 train_err_r = summary(mcluster_fit_r, newdata = vowel_test_r[,2:11], newclass=vowel_test_r[,1])$ce
 test_err_r = summary(mcluster_fit_r, newdata = vowel_test_r[,2:11], newclass=vowel_test_r[,1])$ce.newdata
-cat("EEI\ntrain.err", train_err_r, "\ntest.err", test_err_r, "\n")
+summary(mcluster_fit_r, newdata = vowel_test_r[,2:11], newclass=vowel_test_r[,1])
+cat("EEI\ntrain.acc", 1-train_err_r, "\ntest.acc", 1-test_err_r, "\n")
 

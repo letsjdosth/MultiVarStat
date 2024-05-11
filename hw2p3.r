@@ -17,7 +17,7 @@ pr_out = prcomp(mat_X, scale=FALSE)
 names(pr_out)
 pr_out$center
 pr_out$scale
-pr_out$sdev^2
+pr_out$sdev
 pr_out$rotation #loadings(eigenvecs)
 dim(pr_out$x) #200, 3, score vector.
 
@@ -65,7 +65,7 @@ pr_out_std = prcomp(mat_X, scale=TRUE) #<<<<
 pr_out_std$center
 pr_out_std$scale
 pr_out_std$rotation #loadings
-pr_out_std$sdev^2
+pr_out_std$sdev
 dim(pr_out_std$x) #200, 3, score vector.
 
 mat_X[1,]

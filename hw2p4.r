@@ -7,7 +7,7 @@ length(pendigits$c)
 pr_out = prcomp(pendigits$x, scale=FALSE)
 pr_out$center
 pr_out$scale
-pr_out$sdev^2
+pr_out$sdev
 pr_out$rotation #loadings(eigenvecs)
 dim(pr_out$x) #200, 3, score vector.
 
@@ -25,7 +25,7 @@ score_pca = function(rank_){
 reconstruction_pca = function(rank_){
     pr_out2 = prcomp(pendigits$x, scale=FALSE, rank.=rank_)
     pr_out2_reconst = pr_out2$x %*% t(pr_out2$rotation)   #reconstructed
-    for(i in 1:dim(recon_x)[1]) pr_out2_reconst[i,] = pr_out2_reconst[i,] + pr_out$center
+    for(i in 1:dim(pr_out2_reconst)[1]) pr_out2_reconst[i,] = pr_out2_reconst[i,] + pr_out$center
     return(pr_out2_reconst)
 }
 score2 = score_pca(2)
