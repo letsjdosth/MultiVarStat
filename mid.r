@@ -22,7 +22,6 @@ sim_function = function(p, num_nonzero_elem_of_colLambda){
     }
     Omega = Lambda %*% t(Lambda) + Sigma
     z_samples = mvrnorm(n_train_size + n_test_size, mu=rep(0,p+1), Sigma=Omega)
-    print(dim(z_samples))
 
     sim_data_list = list()
     sim_data_list$x_train_samples = z_samples[1:n_train_size, 1:p]
@@ -35,10 +34,10 @@ sim_function = function(p, num_nonzero_elem_of_colLambda){
     return(sim_data_list)
 }
 
-sim_data_scenario1 = sim_function(100, 2*5)
-sim_data_scenario2 = sim_function(20, 2*5)
-sim_data_scenario3 = sim_function(100, 100+1) #full: p+1
-sim_data_scenario4 = sim_function(20, 20+1)
+sim_data_scenario1 = sim_function(100, 2*5) #S1
+sim_data_scenario2 = sim_function(20, 2*5) #S2
+sim_data_scenario3 = sim_function(100, 100+1) #S3 #full: p+1
+sim_data_scenario4 = sim_function(20, 20+1) #S4
 names(sim_data_scenario1)
 dim(sim_data_scenario1$x_train_samples)
 dim(sim_data_scenario1$x_test_samples)
@@ -57,10 +56,23 @@ testset_y_err_vec_lm = rep(0,100)
 testset_y_err_vec_ridge = rep(0,100)
 testset_y_err_vec_lasso = rep(0,100)
 
-scenario_sim = sim_data_scenario1 # <<< choose here
-#repete below, 100 times, for each scenario
-for(rrr in 1:1){
-    #generate data here
+vec_ols_cv_mse_y = rep(0, 100)
+vec_ridge_cv_mse_y = rep(0, 100)
+vec_lasso_cv_mse_y = rep(0, 100)
+vec_ols_testset_mse_y = rep(0, 100)
+vec_ridge_testset_mse_y = rep(0, 100)
+vec_lasso_testset_mse_y = rep(0, 100)
+vec_ols_testset_mse_beta = rep(0, 100)
+vec_ridge_testset_mse_beta = rep(0, 100)
+vec_lasso_testset_mse_beta = rep(0, 100)
+
+for(rrr in 1:100){
+    if(rrr%%5 == 0) {print(rrr)}
+    #generate data: choose a scenario here.
+    # scenario_sim = sim_function(100, 2*5) #S1
+    scenario_sim = sim_function(20, 2*5) #S2
+    # scenario_sim = sim_function(100, 100+1) #S3
+    # scenario_sim = sim_function(20, 20+1) #S4
 
     #cv
     num_cv_iter = 100
@@ -109,21 +121,21 @@ for(rrr in 1:1){
         lasso_val_errors_mat[k,] = lasso_val_errors
     }
 
-    mean(ls_error_vec)
+    vec_ols_cv_mse_y[rrr] = mean(ls_error_vec)
     sd(ls_error_vec)
 
     ridge_cv_test_err_est = colMeans(ridge_val_errors_mat)
     ridge_cv_test_err_est
     which.min(ridge_cv_test_err_est)
     ridge_lambda_grid[which.min(ridge_cv_test_err_est)]
-    ridge_cv_test_err_est[which.min(ridge_cv_test_err_est)]
+    vec_ridge_cv_mse_y[rrr] = ridge_cv_test_err_est[which.min(ridge_cv_test_err_est)]
     sd(ridge_val_errors_mat[,which.min(ridge_cv_test_err_est)])
 
     lasso_cv_test_err_est = colMeans(lasso_val_errors_mat)
     lasso_cv_test_err_est
-    which.min(lasso_cv_test_err_est) #51(random CV)
-    lasso_lambda_grid[which.min(lasso_cv_test_err_est)] #0.02915053
-    lasso_cv_test_err_est[which.min(lasso_cv_test_err_est)] #23.09(random CV)
+    which.min(lasso_cv_test_err_est)
+    lasso_lambda_grid[which.min(lasso_cv_test_err_est)]
+    vec_lasso_cv_mse_y[rrr] = lasso_cv_test_err_est[which.min(lasso_cv_test_err_est)]
     sd(lasso_val_errors_mat[,which.min(lasso_cv_test_err_est)])
 
 
@@ -133,10 +145,10 @@ for(rrr in 1:1){
                             y=scenario_sim$y_train_samples)
     lm_training_fit = lm(y~., data=training_data_frame)
     lm_beta_mse = mean((lm_training_fit$coefficients - c(scenario_sim$true_beta0, scenario_sim$true_beta1))^2)
-    lm_beta_mse
+    vec_ols_testset_mse_beta[rrr] = lm_beta_mse
     lm_test_pred = predict(lm_training_fit, data.frame(x=scenario_sim$x_test_samples))
     lm_test_mse = mean((lm_test_pred - scenario_sim$y_test_samples)^2)
-    lm_test_mse
+    vec_ols_testset_mse_y[rrr] = lm_test_mse
     sd((lm_test_pred - scenario_sim$y_test_samples)^2)
 
 
@@ -145,10 +157,10 @@ for(rrr in 1:1){
                             family="gaussian", standardize=TRUE, alpha=0, 
                             lambda=ridge_lambda_grid[which.min(ridge_cv_test_err_est)])
     ridge_beta_mse = mean((c(ridge_training_fit$a0, as.vector(ridge_training_fit$beta)) - c(scenario_sim$true_beta0, scenario_sim$true_beta1))^2)
-    ridge_beta_mse
+    vec_ridge_testset_mse_beta[rrr] = ridge_beta_mse
     ridge_pred = predict(ridge_training_fit, s=ridge_lambda_grid[which.min(ridge_cv_test_err_est)], newx=scenario_sim$x_test_samples)
     ridge_test_mse = mean((ridge_pred - scenario_sim$y_test_samples)^2)
-    ridge_test_mse
+    vec_ridge_testset_mse_y[rrr] = ridge_test_mse
     sd((ridge_pred - scenario_sim$y_test_samples)^2)
 
 
@@ -157,10 +169,27 @@ for(rrr in 1:1){
                             family="gaussian", standardize=TRUE, alpha=1, 
                             lambda=lasso_lambda_grid[which.min(lasso_cv_test_err_est)])
     lasso_beta_mse = mean((c(lasso_training_fit$a0, as.vector(lasso_training_fit$beta)) - c(scenario_sim$true_beta0, scenario_sim$true_beta1))^2)
-    lasso_beta_mse
+    vec_lasso_testset_mse_beta[rrr] = lasso_beta_mse
     lasso_pred = predict(lasso_training_fit, s=lasso_lambda_grid[which.min(lasso_cv_test_err_est)], newx=scenario_sim$x_test_samples)
     lasso_test_mse = mean((lasso_pred - scenario_sim$y_test_samples)^2)
-    lasso_test_mse
+    vec_lasso_testset_mse_y[rrr] = lasso_test_mse
     sd((lasso_pred - scenario_sim$y_test_samples)^2)
-
 }
+
+
+mean(vec_ols_cv_mse_y)
+mean(vec_ridge_cv_mse_y)
+mean(vec_lasso_cv_mse_y)
+mean(vec_ols_testset_mse_y)
+mean(vec_ridge_testset_mse_y)
+mean(vec_lasso_testset_mse_y)
+mean(vec_ols_testset_mse_beta)
+mean(vec_ridge_testset_mse_beta)
+mean(vec_lasso_testset_mse_beta)
+
+as.vector(scenario_sim$true_beta1)
+as.vector(lm_fit$coefficients)
+as.vector(ridge_fit$beta[,which.min(ridge_cv_test_err_est)])
+as.vector(ridge_fit$a0[which.min(ridge_cv_test_err_est)])
+as.vector(lasso_fit$beta[,which.min(lasso_cv_test_err_est)])
+as.vector(lasso_fit$a0[which.min(lasso_cv_test_err_est)])
