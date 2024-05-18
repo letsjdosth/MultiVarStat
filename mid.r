@@ -34,6 +34,7 @@ sim_function = function(p, num_nonzero_elem_of_colLambda){
     return(sim_data_list)
 }
 
+#test
 sim_data_scenario1 = sim_function(100, 2*5) #S1
 sim_data_scenario2 = sim_function(20, 2*5) #S2
 sim_data_scenario3 = sim_function(100, 100+1) #S3 #full: p+1
@@ -66,11 +67,11 @@ vec_ols_testset_mse_beta = rep(0, 100)
 vec_ridge_testset_mse_beta = rep(0, 100)
 vec_lasso_testset_mse_beta = rep(0, 100)
 
-for(rrr in 1:100){
+for(rrr in 1:1){
     if(rrr%%5 == 0) {print(rrr)}
-    #generate data: choose a scenario here.
-    # scenario_sim = sim_function(100, 2*5) #S1
-    scenario_sim = sim_function(20, 2*5) #S2
+    #generate data: choose a scenario here by uncommenting only one line of 72-75.
+    scenario_sim = sim_function(100, 2*5) #S1
+    # scenario_sim = sim_function(20, 2*5) #S2
     # scenario_sim = sim_function(100, 100+1) #S3
     # scenario_sim = sim_function(20, 20+1) #S4
 
@@ -191,5 +192,16 @@ as.vector(scenario_sim$true_beta1)
 as.vector(lm_fit$coefficients)
 as.vector(ridge_fit$beta[,which.min(ridge_cv_test_err_est)])
 as.vector(ridge_fit$a0[which.min(ridge_cv_test_err_est)])
+ridge_lambda_grid[which.min((ridge_cv_test_err_est))]
 as.vector(lasso_fit$beta[,which.min(lasso_cv_test_err_est)])
 as.vector(lasso_fit$a0[which.min(lasso_cv_test_err_est)])
+lasso_lambda_grid[which.min(lasso_cv_test_err_est)]
+
+x11(width = 12, height = 4)
+par(mfrow=c(1,3))
+plot(1:100, as.vector(scenario_sim$true_beta1), type='l', col="red", xlab='j', ylab='beta_j', main="OLS fit")
+points(1:100,as.vector(lm_fit$coefficients)[2:101], type='l')
+plot(1:100, as.vector(scenario_sim$true_beta1), type='l', col="red", xlab='j', ylab='beta_j', main="Ridge fit")
+points(1:100,as.vector(ridge_fit$beta[,which.min(lasso_cv_test_err_est)]), type='l')
+plot(1:100, as.vector(scenario_sim$true_beta1), type='l', col="red", xlab='j', ylab='beta_j', main="Lasso fit")
+points(1:100,as.vector(lasso_fit$beta[,which.min(lasso_cv_test_err_est)]), type='l')
