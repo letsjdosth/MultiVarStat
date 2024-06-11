@@ -23,17 +23,29 @@ mclust_fit$uncertainty
 
 # ============
 library(stats)
+library(cluster)
 kmeans_fit = kmeans(USArrests, centers=3)
 kmeans_fit$cluster
 
-
 # ============
 
-scaled_USArrests = scale(USArrests, center=TRUE, scale=TRUE)
+scaled_USArrests = scale(USArrests, center=FALSE, scale=TRUE)
 kmeans_fit2 = kmeans(scaled_USArrests, centers=3)
 kmeans_fit2$cluster
 
-mclust_bic2 = mclustBIC(scaled_USArrests)
+
+silhouette_score <- function(k){
+  km = kmeans(scaled_USArrests, centers = k)
+  sil = silhouette(km$cluster, dist(scaled_USArrests))
+  mean(sil[, 3])
+}
+k = 2:10
+avg_sil = sapply(k, silhouette_score)
+plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
+#2 is the best
+
+
+mclust_bic2 = mclustBIC(scaled_USArrests) #3 is the best
 mclust_fit2 = Mclust(data=scaled_USArrests, x=mclust_bic2)
 mclust_fit2$modelName
 mclust_fit2$G
@@ -69,8 +81,6 @@ superclasses_hc_fit
 library(aweSOM)
 set.seed(20240610)
 som_init = somInit(scaled_USArrests, 2, 2)
-?kohonen::som
-?kohonen::somgrid
 som_fit = kohonen::som(scaled_USArrests, grid = kohonen::somgrid(2, 2, "rectangular"), 
                 rlen = 100, alpha = c(0.05, 0.01), radius = c(2.65,-2.65), 
                 dist.fcts = "sumofsquares", init = som_init)
