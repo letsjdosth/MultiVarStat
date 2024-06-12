@@ -29,7 +29,7 @@ kmeans_fit$cluster
 
 # ============
 
-scaled_USArrests = scale(USArrests, center=FALSE, scale=TRUE)
+scaled_USArrests = scale(USArrests, center = FALSE, scale = apply(USArrests, 2, sd, na.rm = TRUE))
 kmeans_fit2 = kmeans(scaled_USArrests, centers=3)
 kmeans_fit2$cluster
 
@@ -62,6 +62,9 @@ as.vector(kmeans_fit2$cluster)
 as.vector(mclust_fit2$classification)
 
 
+kmeans_fit3 = kmeans(scaled_USArrests, centers=2)
+kmeans_fit3$cluster
+
 # =========
 # dendrogram
 dist = dist(scaled_USArrests, diag=TRUE)
@@ -89,11 +92,11 @@ names(som_fit)
 som_fit$unit.classif
 
 
-superclust_pam <- cluster::pam(som_fit$codes[[1]], 3)
-superclasses_pam <- superclust_pam$clustering
+superclust_pam = cluster::pam(som_fit$codes[[1]], 3)
+superclasses_pam = superclust_pam$clustering
 
-superclust_hclust <- hclust(dist(som_fit$codes[[1]]), "complete")
-superclasses_hclust <- cutree(superclust_hclust, 3)
+superclust_hclust = hclust(dist(som_fit$codes[[1]]), "complete")
+superclasses_hclust = cutree(superclust_hclust, 3)
 
 scaled_USArrests
 aweSOMplot(som = som_fit, type = "Barplot", data = scaled_USArrests, 
